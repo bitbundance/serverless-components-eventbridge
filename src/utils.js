@@ -59,68 +59,6 @@ const prepareInputs = (inputs, instance) => {
 }
 
 /*
- * Ensure the provided IAM Role or default IAM Role exists
- *
- * @param ${instance} instance - the component instance
- * @param ${object} inputs - the component inputs
- * @param ${object} clients - the aws clients object
- */
-const createOrUpdateFunctionRole = async (instance, inputs, clients) => {
-  // Verify existing role, either provided or the previously created default role...
-  if (inputs.roleName) {
-    console.log(
-      `Verifying the provided IAM Role with the name: ${inputs.roleName} in the inputs exists...`
-    )
-
-    const userRole = await clients.extras.getRole({ roleName: inputs.roleName })
-    const userRoleArn = userRole && userRole.Role && userRole.Role.Arn ? userRole.Role.Arn : null // Don't save user provided role to state, always reference it as an input, in case it changes
-
-    // If user role exists, save it to state so it can be used for the create/update lambda logic later
-    if (userRoleArn) {
-      console.log(`The provided IAM Role with the name: ${inputs.roleName} in the inputs exists.`)
-      instance.state.userRoleArn = userRoleArn
-
-      // Save AWS Account ID by fetching the role ID
-      // TODO: This may not work with cross-account roles.
-      instance.state.awsAccountId = instance.state.userRoleArn.split(':')[4]
-
-      // Be sure to delete defaultLambdaRoleArn data, if it exists
-      if (instance.state.defaultLambdaRoleArn) {
-        delete instance.state.defaultLambdaRoleArn
-      }
-    } else {
-      throw new Error(`The provided IAM Role with the name: ${inputs.roleName} could not be found.`)
-    }
-  } else {
-    // Create a default role with basic Lambda permissions
-
-    const defaultLambdaRoleName = `${inputs.name}-lambda-role`
-    console.log(
-      `IAM Role not found.  Creating or updating a default role with the name: ${defaultLambdaRoleName}`
-    )
-
-    const result = await clients.extras.deployRole({
-      roleName: defaultLambdaRoleName,
-      service: ['lambda.amazonaws.com'],
-      policy: 'arn:aws:iam::aws:policy/AWSLambdaFullAccess'
-    })
-
-    instance.state.defaultLambdaRoleName = defaultLambdaRoleName
-    instance.state.defaultLambdaRoleArn = result.roleArn
-    instance.state.awsAccountId = instance.state.defaultLambdaRoleArn.split(':')[4]
-
-    // Be sure to delete userRole data, if it exists
-    if (instance.state.userRoleArn) {
-      delete instance.state.userRoleArn
-    }
-
-    console.log(
-      `Default Lambda IAM Role created or updated with ARN ${instance.state.defaultLambdaRoleArn}`
-    )
-  }
-}
-
-/*
  * Ensure the Meta IAM Role exists
  */
 const createOrUpdateMetaRole = async (instance, inputs, clients, serverlessAccountId) => {
@@ -211,60 +149,6 @@ const createEventbus = async (instance, eventbridge, inputs) => {
 }
 
 /**
- * Update Lambda configuration
- * @param {*} lambda
- * @param {*} config
- */
-const updateLambdaFunctionConfig = async (instance, lambda, inputs) => {
-  const functionConfigParams = {
-    FunctionName: inputs.name,
-    Description: inputs.description,
-    Handler: inputs.handler,
-    MemorySize: inputs.memory,
-    Role: instance.state.userRoleArn || instance.state.defaultLambdaRoleArn,
-    Runtime: inputs.runtime,
-    Timeout: inputs.timeout,
-    Layers: inputs.layers,
-    Environment: {
-      Variables: inputs.env
-    },
-    ...(inputs.securityGroupIds
-      ? {
-          VpcConfig: {
-            SecurityGroupIds: inputs.securityGroupIds,
-            SubnetIds: inputs.subnetIds
-          }
-        }
-      : {
-          VpcConfig: {
-            SecurityGroupIds: [],
-            SubnetIds: []
-          }
-        })
-  }
-
-  const res = await lambda.updateFunctionConfiguration(functionConfigParams).promise()
-  return { arn: res.FunctionArn, hash: res.CodeSha256 }
-}
-
-/**
- * Update Lambda function code
- * @param {*} lambda
- * @param {*} config
- */
-const updateLambdaFunctionCode = async (lambda, inputs) => {
-  const functionCodeParams = {
-    FunctionName: inputs.name,
-    Publish: true
-  }
-
-  functionCodeParams.ZipFile = await readFile(inputs.src)
-  const res = await lambda.updateFunctionCode(functionCodeParams).promise()
-
-  return res.FunctionArn
-}
-
-/**
  * Get EventBridge Function
  * @param {*} eventBridge
  * @param {*} bridgeName
@@ -291,7 +175,7 @@ const getEventbus = async (eventbridge, bridgeName) => {
 }
 
 /**
- * Delete Lambda function
+ * Delete eventbus function
  * @param {*} param0
  */
 const deleteEventbus = async (eventbridge, bridgename) => {
@@ -303,75 +187,6 @@ const deleteEventbus = async (eventbridge, bridgename) => {
     if (error.code !== 'ResourceNotFoundException') {
       throw error
     }
-  }
-}
-
-/**
- * Get AWS IAM role policy
- * @param {*} param0
- */
-const getPolicy = async ({ name, region, accountId }) => {
-  return {
-    Version: '2012-10-17',
-    Statement: [
-      {
-        Action: ['logs:CreateLogStream'],
-        Resource: [`arn:aws:logs:${region}:${accountId}:log-group:/aws/lambda/${name}:*`],
-        Effect: 'Allow'
-      },
-      {
-        Action: ['logs:PutLogEvents'],
-        Resource: [`arn:aws:logs:${region}:${accountId}:log-group:/aws/lambda/${name}:*:*`],
-        Effect: 'Allow'
-      }
-    ]
-  }
-}
-
-/**
- * Detect if inputs have changed
- * @param {*} prevLambda
- * @param {*} lambda
- */
-const inputsChanged = (prevLambda, lambda) => {
-  const keys = [
-    'description',
-    'runtime',
-    'roleArn',
-    'handler',
-    'memory',
-    'timeout',
-    'env',
-    'hash',
-    'securityGroupIds',
-    'subnetIds'
-  ]
-  const inputs = pick(keys, lambda)
-  const prevInputs = pick(keys, prevLambda)
-  return not(equals(inputs, prevInputs))
-}
-
-/*
- * Removes the Function & Meta Roles from aws according to the provided config
- *
- * @param ${object} clients - an object containing aws sdk clients
- * @param ${object} config - the component config
- */
-const removeAllRoles = async (instance, clients) => {
-  // Delete Function Role
-  if (instance.state.defaultLambdaRoleName) {
-    console.log('Deleting the default Function Role...')
-    await clients.extras.removeRole({
-      roleName: instance.state.defaultLambdaRoleName
-    })
-  }
-
-  // Delete Meta Role
-  if (instance.state.metaRoleName) {
-    console.log('Deleting the Meta Role...')
-    await clients.extras.removeRole({
-      roleName: instance.state.metaRoleName
-    })
   }
 }
 
@@ -429,14 +244,9 @@ const getMetrics = async (region, metaRoleArn, functionName, rangeStart, rangeEn
 module.exports = {
   prepareInputs,
   getClients,
-  createOrUpdateFunctionRole,
   createOrUpdateMetaRole,
   createEventbus,
-  updateLambdaFunctionCode,
-  updateLambdaFunctionConfig,
   getEventbus,
-  inputsChanged,
   deleteEventbus,
-  removeAllRoles,
   getMetrics
 }

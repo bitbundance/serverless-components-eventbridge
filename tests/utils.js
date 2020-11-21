@@ -50,43 +50,29 @@ const getServerlessSdk = (orgName) => {
 }
 
 /*
- * Fetches a lambda function from aws for validation
+ * Fetches a eventbus from aws for validation
  * @param ${object} credentials - the cross provider credentials object
  * @param ${string} lambdaName - the name of the lambda function
  */
-const getLambda = async (credentials, lambdaName) => {
+const getEventbus = async (credentials, bridgeName) => {
   const config = {
     credentials: credentials.aws,
     region: 'us-east-1'
   }
-  const lambda = new AWS.Lambda(config)
+  const eventbridge = new AWS.eventbridge(config)
 
-  return lambda
-    .getFunctionConfiguration({
-      FunctionName: lambdaName
-    })
-    .promise()
-}
+  return eventbridge
+      .describeEventBus({
+        Name: bridgeName
+      })
+      .promise()
 
-/*
- * Invokes a lambda function from aws for validation
- * @param ${object} credentials - the cross provider credentials object
- * @param ${string} lambdaName - the name of the lambda function
- */
-const invokeLambda = async (credentials, lambdaName) => {
-  const config = {
-    credentials: credentials.aws,
-    region: 'us-east-1'
+    return {
+      name: res.Name,
+      arn: res.Arn,
+      policy: res.Policy
+      
+    }
   }
-  const lambda = new AWS.Lambda(config)
 
-  const res = await lambda
-    .invoke({
-      FunctionName: lambdaName
-    })
-    .promise()
-
-  return JSON.parse(res.Payload)
-}
-
-module.exports = { sleep, generateId, getCredentials, getServerlessSdk, getLambda, invokeLambda }
+module.exports = { sleep, generateId, getCredentials, getServerlessSdk, getEventbus }

@@ -5,13 +5,8 @@ const {
   prepareInputs,
   getClients,
   createEventbus,
-  updateLambdaFunctionCode,
-  updateLambdaFunctionConfig,
   getEventbus,
-  createOrUpdateFunctionRole,
-  createOrUpdateMetaRole,
   deleteEventbus,
-  removeAllRoles,
   getMetrics
 } = require('./utils')
 
@@ -116,7 +111,7 @@ class AwsEventbridge extends Component {
     )
 
     this.state = {}
-    return {clients}
+    return {}
   }
 
   /**

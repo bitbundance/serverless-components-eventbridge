@@ -45,7 +45,7 @@ it('should successfully remove eventbridge', async () => {
   let eventbus
   
   try {
-    eventbus = await getEventbus(client.eventBridge, firstInstanceState.name)
+    eventbus = await getEventbus(credentials, firstInstanceState.name)
   } catch (e) {
     if (e.code !== 'ResourceNotFoundException') {
       throw e
