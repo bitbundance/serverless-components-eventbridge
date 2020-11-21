@@ -294,7 +294,7 @@ const getEventbridge = async (eventbridge, bridgeName) => {
  * Delete Lambda function
  * @param {*} param0
  */
-const deleteEventBridge = async (eventbridge, bridgename) => {
+const deleteEventbus = async (eventbridge, bridgename) => {
   try {
     const params = { Name: bridgename }
     await eventbridge.deleteEventBus(params).promise()
@@ -436,7 +436,7 @@ module.exports = {
   updateLambdaFunctionConfig,
   getEventbridge,
   inputsChanged,
-  deleteEventBridge,
+  deleteEventbus,
   removeAllRoles,
   getMetrics
 }
