@@ -7,7 +7,7 @@ const {
   createEventbus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
-  getEventbridge,
+  getEventbus,
   createOrUpdateFunctionRole,
   createOrUpdateMetaRole,
   deleteEventbus,
@@ -60,7 +60,7 @@ class AwsEventbridge extends Component {
     console.log(
       `Checking if an AWS Eventbridge has already been created with name: ${inputs.name}`
     )
-    const prevEventBridge = await getEventbridge(clients.eventbridge, inputs.name)
+    const prevEventBridge = await getEventbus(clients.eventbridge, inputs.name)
 
     // Create or update Lambda function
     if (!prevEventBridge) {

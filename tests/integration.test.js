@@ -1,5 +1,5 @@
 const path = require('path')
-const { generateId, getCredentials, getServerlessSdk, getEventbridge } = require('./utils')
+const { generateId, getCredentials, getServerlessSdk, getEventbus } = require('./utils')
 
 // set enough timeout for deployment to finish
 jest.setTimeout(30000)
@@ -40,12 +40,12 @@ it('should successfully deploy eventbus', async () => {
 })
 
 it('should successfully remove eventbridge', async () => {
-  const instance = sdk.remove(instanceYaml, credentials)
+  const client = sdk.remove(instanceYaml, credentials)
   
   let eventbus
   
   try {
-    eventbus = await getEventbridge(instance.eventBridge, firstInstanceState.name)
+    eventbus = await getEventbus(client.eventBridge, firstInstanceState.name)
   } catch (e) {
     if (e.code !== 'ResourceNotFoundException') {
       throw e

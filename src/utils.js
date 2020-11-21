@@ -267,9 +267,9 @@ const updateLambdaFunctionCode = async (lambda, inputs) => {
 /**
  * Get EventBridge Function
  * @param {*} eventBridge
- * @param {*} functionName
+ * @param {*} bridgeName
  */
-const getEventbridge = async (eventbridge, bridgeName) => {
+const getEventbus = async (eventbridge, bridgeName) => {
   try {
     const res = await eventbridge
       .describeEventBus({
@@ -434,7 +434,7 @@ module.exports = {
   createEventbus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
-  getEventbridge,
+  getEventbus,
   inputsChanged,
   deleteEventbus,
   removeAllRoles,
