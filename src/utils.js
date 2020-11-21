@@ -188,11 +188,9 @@ const createOrUpdateMetaRole = async (instance, inputs, clients, serverlessAccou
 }
 
 /**
- * Create a new lambda function
- * @param {*} lambda
- * @param {*} config
+ * Create a new eventbus
  */
-const createEventBus = async (instance, eventbridge, inputs) => {
+const createEventbus = async (instance, eventbridge, inputs) => {
   const params = {
     Name: inputs.name,
     EventSourceName: inputs.eventsourcename,
@@ -203,8 +201,6 @@ const createEventBus = async (instance, eventbridge, inputs) => {
       }
     ]
   }
-
-  params.Code.ZipFile = await readFile(inputs.src)
 
   try {
     const res = await eventbridge.createEventBus(params).promise()
@@ -435,7 +431,7 @@ module.exports = {
   getClients,
   createOrUpdateFunctionRole,
   createOrUpdateMetaRole,
-  createEventBus,
+  createEventbus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
   getEventbridge,

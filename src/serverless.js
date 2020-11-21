@@ -4,7 +4,7 @@ const { Component } = require('@serverless/core')
 const {
   prepareInputs,
   getClients,
-  createEventBus,
+  createEventbus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
   getEventbridge,
@@ -68,7 +68,7 @@ class AwsEventbridge extends Component {
       console.log(
         `Creating a new AWS Eventbridge "${inputs.name}" in the "${inputs.region}" region.`
       )
-      const createResult = await createEventBus(this, clients.eventbridge, inputs)
+      const createResult = await createEventbus(this, clients.eventbridge, inputs)
       inputs.arn = createResult.arn
       inputs.hash = createResult.hash
       console.log(`Successfully created an AWS EventBridge function`)
