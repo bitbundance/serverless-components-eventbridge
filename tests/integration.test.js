@@ -40,7 +40,7 @@ it('should successfully deploy eventbus', async () => {
 })
 
 it('should successfully remove eventbridge', async () => {
-  const client = sdk.remove(instanceYaml, credentials)
+  const client = await sdk.remove(instanceYaml, credentials)
   
   let eventbus
   
