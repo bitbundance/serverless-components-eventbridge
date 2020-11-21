@@ -1,0 +1,9 @@
+name: eventbridge # Required. The name of the Component
+version: 0.0.1 # Required. The version of the Component
+author: bitbundance # Required. The author of the Component
+org: bitbundance # Required. The Serverless Framework org which owns this Component
+main: ./src # Required. The directory which contains the Component code
+description: Deploys EventBridge into AWS # Optional. The description of the Component
+keywords: aws, serverless, eventbridge # Optional. The keywords of the Component to make it easier to find at registry.serverless.com
+repo: https://github.com/bitbundance/serverless-components-eventbridge # Optional. The code repository of the Component
+license: MIT # Optional. The license of the Component code

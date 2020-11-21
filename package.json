@@ -1,6 +1,6 @@
 {
-  "name": "@serverless/aws-lambda",
-  "version": "3.0.0",
+  "name": "@bitbundance/serverless-components-eventbridge",
+  "version": "0.0.1",
   "main": "./serverless.js",
   "publishConfig": {
     "access": "public"
@@ -9,7 +9,7 @@
     "test": "jest",
     "lint": "eslint . --fix --cache"
   },
-  "author": "Serverless, Inc.",
+  "author": "Bitbundance",
   "license": "Apache",
   "dependencies": {
     "@serverless/aws-iam-role": "^1.0.0",

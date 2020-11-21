@@ -1,13 +1,15 @@
-# aws-lambda
+# aws-eventbridge
 
-Deploy Lambda functions to AWS in seconds with [Serverless Components](https://github.com/serverless/components). Utilizes layers for dependency management and S3 accelerated uploads for maximum upload speeds.
+Deploy an eventbridge to AWS in seconds with [Serverless Components](https://github.com/serverless/components). Utilizes layers for dependency management and S3 accelerated uploads for maximum upload speeds.
 
 &nbsp;
 
-1. [Install](#1-install)
-2. [Create](#2-create)
-3. [Configure](#3-configure)
-4. [Deploy](#4-deploy)
+- [aws-eventbridge](#aws-eventbridge)
+    - [1. Install](#1-install)
+    - [2. Create](#2-create)
+    - [3. Configure](#3-configure)
+    - [4. Deploy](#4-deploy)
+    - [New to Components?](#new-to-components)
 
 &nbsp;
 
