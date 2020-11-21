@@ -36,7 +36,8 @@ const getClients = (credentials = {}, region) => {
   const iam = new AWS.IAM({ credentials, region })
   const lambda = new AWS.Lambda({ credentials, region })
   const sts = new AWS.STS({ credentials, region })
-  return { iam, lambda, extras, sts }
+  const eventbridge = new AWS.EventBridge({ credentials, region })
+  return { iam, lambda, extras, sts, eventbridge }
 }
 
 /**
@@ -52,7 +53,8 @@ const prepareInputs = (inputs, instance) => {
       `An AWS EventBridge from the AWS EventBridge Serverless Framework Component.  Name: "${instance.name}" Stage: "${instance.stage}"`,
     tagkey: 'Creator',
     tagvalue: 'Bitbundance',
-    eventsourcename: inputs.eventsourcename || null
+    eventsourcename: inputs.eventsourcename || null,
+    region: inputs.region || 'us-east-1'
   }
 }
 
@@ -197,7 +199,7 @@ const createEventBus = async (instance, eventbridge, inputs) => {
     Tags: [
       {
         Key: inputs.tagkey, 
-        Value: inouts.tagvalue 
+        Value: inputs.tagvalue 
       }
     ]
   }
@@ -274,7 +276,7 @@ const updateLambdaFunctionCode = async (lambda, inputs) => {
 const getEventbridge = async (eventbridge, bridgeName) => {
   try {
     const res = await eventbridge
-      .getFunctionConfiguration({
+      .describeEventBus({
         Name: bridgeName
       })
       .promise()

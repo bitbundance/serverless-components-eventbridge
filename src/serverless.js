@@ -30,7 +30,7 @@ class AwsEventbridge extends Component {
     // Check size of source code is less than 100MB
     if (this.size > 100000000) {
       throw new Error(
-        'Your AWS Eventbridge source code size must be less than 100MB. 
+        'Your AWS Eventbridge source code size must be less than 100MB.'
       )
     }
 
