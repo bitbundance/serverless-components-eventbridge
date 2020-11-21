@@ -59,7 +59,7 @@ const getEventbus = async (credentials, bridgeName) => {
     credentials: credentials.aws,
     region: 'us-east-1'
   }
-  const eventbridge = new AWS.eventbridge(config)
+  const eventbridge = new AWS.EventBridge(config)
 
   return eventbridge
       .describeEventBus({
