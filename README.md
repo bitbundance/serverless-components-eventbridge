@@ -22,13 +22,13 @@
 
 <img src="/assets/deploy-demo.gif" height="250" align="right">
 
-1. [**Install**](#1-install)
-2. [**Initialize**](#2-initialize)
-3. [**Deploy**](#3-deploy)
-4. [**Configure**](#4-configure)
-5. [**Develop**](#5-develop)
-6. [**Monitor**](#6-monitor)
-7. [**Remove**](#7-remove)
+- [1. Install](#1-install)
+- [2. Initialize](#2-initialize)
+- [3. Deploy](#3-deploy)
+- [4. Configure](#4-configure)
+- [5. Develop](#5-develop)
+- [6. Monitor](#6-monitor)
+- [7. Remove](#7-remove)
 
 &nbsp;
 

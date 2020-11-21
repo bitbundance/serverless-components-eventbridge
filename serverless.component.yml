@@ -1,10 +1,9 @@
-name: aws-lambda
-version: 2.0.0
-author: eahefnawy
-org: serverlessinc
-description: Deploys an AWS Lambda Function
-keywords: aws, serverless, lambda, function, faas
-repo: https://github.com/serverless-components/aws-lambda
-readme: ''
-license: MIT
-src: ./src
+name: eventbridge 
+version: 0.0.1 
+author: bitbundance 
+org: bitbundance 
+main: ./src 
+description: Deploys EventBridge into AWS 
+keywords: aws, serverless, eventbridge to find at registry.serverless.com
+repo: https://github.com/bitbundance/serverless-components-eventbridge 
+license: MIT 
