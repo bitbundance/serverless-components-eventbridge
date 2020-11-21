@@ -4,10 +4,10 @@ const { Component } = require('@serverless/core')
 const {
   prepareInputs,
   getClients,
-  createLambdaFunction,
+  createEventBus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
-  getLambdaFunction,
+  getEventbridge,
   createOrUpdateFunctionRole,
   createOrUpdateMetaRole,
   deleteLambdaFunction,
@@ -15,7 +15,7 @@ const {
   getMetrics
 } = require('./utils')
 
-class AwsLambda extends Component {
+class AwsEventbridge extends Component {
   /**
    * Deploy
    * @param {*} inputs
@@ -30,7 +30,7 @@ class AwsLambda extends Component {
     // Check size of source code is less than 100MB
     if (this.size > 100000000) {
       throw new Error(
-        'Your AWS Lambda source code size must be less than 100MB.  Try using Webpack, Parcel, AWS Lambda layers to reduce your code size.'
+        'Your AWS Eventbridge source code size must be less than 100MB. 
       )
     }
 
@@ -38,7 +38,7 @@ class AwsLambda extends Component {
     inputs = prepareInputs(inputs, this)
 
     console.log(
-      `Starting deployment of AWS Lambda "${inputs.name}" to the AWS region "${inputs.region}".`
+      `Starting deployment of AWS EventBridge "${inputs.name}" to the AWS region "${inputs.region}".`
     )
 
     // Get AWS clients
@@ -57,43 +57,25 @@ class AwsLambda extends Component {
       )
     }
 
-    await Promise.all([
-      createOrUpdateFunctionRole(this, inputs, clients),
-      createOrUpdateMetaRole(this, inputs, clients, this.accountId)
-    ])
-
     console.log(
-      `Checking if an AWS Lambda function has already been created with name: ${inputs.name}`
+      `Checking if an AWS Eventbridge has already been created with name: ${inputs.name}`
     )
-    const prevLambda = await getLambdaFunction(clients.lambda, inputs.name)
-
-    const filesPath = await this.unzip(inputs.src, true) // Returns directory with unzipped files
-
-    if (!inputs.src) {
-      copySync(path.join(__dirname, '_src'), filesPath)
-      inputs.handler = 'handler.handler'
-    }
-
-    inputs.handler = this.addSDK(filesPath, inputs.handler) // Returns new handler
-    inputs.src = await this.zip(filesPath, true) // Returns new zip
+    const prevEventBridge = await getEventbridge(clients.eventbridge, inputs.name)
 
     // Create or update Lambda function
-    if (!prevLambda) {
+    if (!prevEventBridge) {
       // Create a Lambda function
       console.log(
-        `Creating a new AWS Lambda function "${inputs.name}" in the "${inputs.region}" region.`
+        `Creating a new AWS Eventbridge "${inputs.name}" in the "${inputs.region}" region.`
       )
-      const createResult = await createLambdaFunction(this, clients.lambda, inputs)
+      const createResult = await createEventBus(this, clients.eventbridge, inputs)
       inputs.arn = createResult.arn
       inputs.hash = createResult.hash
-      console.log(`Successfully created an AWS Lambda function`)
+      console.log(`Successfully created an AWS EventBridge function`)
     } else {
       // Update a Lambda function
-      inputs.arn = prevLambda.arn
-      console.log(`Updating ${inputs.name} AWS lambda function.`)
-      await updateLambdaFunctionCode(clients.lambda, inputs)
-      await updateLambdaFunctionConfig(this, clients.lambda, inputs)
-      console.log(`Successfully updated AWS Lambda function`)
+      inputs.arn = prevEventBridge.arn
+      console.log(`Eventbridge ${inputs.name} already exists.`)
     }
 
     // Update state
@@ -103,9 +85,7 @@ class AwsLambda extends Component {
 
     return {
       name: inputs.name,
-      arn: inputs.arn,
-      securityGroupIds: inputs.securityGroupIds,
-      subnetIds: inputs.subnetIds
+      arn: inputs.arn
     }
   }
 
@@ -127,12 +107,10 @@ class AwsLambda extends Component {
 
     const clients = getClients(this.credentials.aws, this.state.region)
 
-    await removeAllRoles(this, clients)
-
-    console.log(`Removing lambda ${this.state.name} from the ${this.state.region} region.`)
-    await deleteLambdaFunction(clients.lambda, this.state.name)
+    console.log(`Removing AWS Eventbridge ${this.state.name} from the ${this.state.region} region.`)
+    await deleteEventBridge(clients.eventbridge, this.state.name)
     console.log(
-      `Successfully removed lambda ${this.state.name} from the ${this.state.region} region.`
+      `Successfully removed Eventbridge ${this.state.name} from the ${this.state.region} region.`
     )
 
     this.state = {}
@@ -163,4 +141,4 @@ class AwsLambda extends Component {
 /**
  * Exports
  */
-module.exports = AwsLambda
+module.exports = AwsEventbridge

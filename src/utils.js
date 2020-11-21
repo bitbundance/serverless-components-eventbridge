@@ -47,20 +47,12 @@ const getClients = (credentials = {}, region) => {
 const prepareInputs = (inputs, instance) => {
   return {
     name: inputs.name || instance.state.name || `${instance.name}-${instance.stage}-${randomId}`,
-    roleName: inputs.roleName,
     description:
       inputs.description ||
-      `An AWS Lambda function from the AWS Lambda Serverless Framework Component.  Name: "${instance.name}" Stage: "${instance.stage}"`,
-    memory: inputs.memory || 1028,
-    timeout: inputs.timeout || 10,
-    src: inputs.src || null,
-    handler: inputs.handler || 'handler.handler',
-    runtime: 'nodejs12.x',
-    env: inputs.env || {},
-    region: inputs.region || 'us-east-1',
-    layers: inputs.layers || [],
-    securityGroupIds: inputs.vpcConfig ? inputs.vpcConfig.securityGroupIds : false,
-    subnetIds: inputs.vpcConfig ? inputs.vpcConfig.subnetIds : false
+      `An AWS EventBridge from the AWS EventBridge Serverless Framework Component.  Name: "${instance.name}" Stage: "${instance.stage}"`,
+    tagkey: 'Creator',
+    tagvalue: 'Bitbundance',
+    eventsourcename: inputs.eventsourcename || null
   }
 }
 
@@ -198,40 +190,24 @@ const createOrUpdateMetaRole = async (instance, inputs, clients, serverlessAccou
  * @param {*} lambda
  * @param {*} config
  */
-const createLambdaFunction = async (instance, lambda, inputs) => {
+const createEventBus = async (instance, eventbridge, inputs) => {
   const params = {
-    FunctionName: inputs.name,
-    Code: {},
-    Description: inputs.description,
-    Handler: inputs.handler,
-    MemorySize: inputs.memory,
-    Publish: true,
-    Role: instance.state.userRoleArn || instance.state.defaultLambdaRoleArn,
-    Runtime: inputs.runtime,
-    Timeout: inputs.timeout,
-    Layers: inputs.layers,
-    Environment: {
-      Variables: inputs.env
-    },
-    ...(inputs.securityGroupIds && {
-      VpcConfig: {
-        SecurityGroupIds: inputs.securityGroupIds,
-        SubnetIds: inputs.subnetIds
+    Name: inputs.name,
+    EventSourceName: inputs.eventsourcename,
+    Tags: [
+      {
+        Key: inputs.tagkey, 
+        Value: inouts.tagvalue 
       }
-    })
+    ]
   }
 
   params.Code.ZipFile = await readFile(inputs.src)
 
   try {
-    const res = await lambda.createFunction(params).promise()
-    return { arn: res.FunctionArn, hash: res.CodeSha256 }
+    const res = await eventbridge.createEventBus(params).promise()
+    return { arn: res.EventBusArn, hash: res.CodeSha256 }
   } catch (e) {
-    if (e.message.includes(`The role defined for the function cannot be assumed by Lambda`)) {
-      // we need to wait after the role is created before it can be assumed
-      await sleep(5000)
-      return await createLambdaFunction(instance, lambda, inputs)
-    }
     throw e
   }
 }
@@ -291,33 +267,22 @@ const updateLambdaFunctionCode = async (lambda, inputs) => {
 }
 
 /**
- * Get Lambda Function
- * @param {*} lambda
+ * Get EventBridge Function
+ * @param {*} eventBridge
  * @param {*} functionName
  */
-const getLambdaFunction = async (lambda, functionName) => {
+const getEventbridge = async (eventbridge, bridgeName) => {
   try {
-    const res = await lambda
+    const res = await eventbridge
       .getFunctionConfiguration({
-        FunctionName: functionName
+        Name: bridgeName
       })
       .promise()
 
     return {
-      name: res.FunctionName,
-      description: res.Description,
-      timeout: res.Timeout,
-      runtime: res.Runtime,
-      role: {
-        arn: res.Role
-      },
-      handler: res.Handler,
-      memory: res.MemorySize,
-      hash: res.CodeSha256,
-      env: res.Environment ? res.Environment.Variables : {},
-      arn: res.FunctionArn,
-      securityGroupIds: res.VpcConfig ? res.VpcConfig.SecurityGroupIds : false,
-      subnetIds: res.VpcConfig ? res.VpcConfig.SubnetIds : false
+      name: res.Name,
+      arn: res.Arn,
+      policy: res.Policy
     }
   } catch (e) {
     if (e.code === 'ResourceNotFoundException') {
@@ -331,10 +296,10 @@ const getLambdaFunction = async (lambda, functionName) => {
  * Delete Lambda function
  * @param {*} param0
  */
-const deleteLambdaFunction = async (lambda, functionName) => {
+const deleteEventBridge = async (eventbridge, bridgename) => {
   try {
-    const params = { FunctionName: functionName }
-    await lambda.deleteFunction(params).promise()
+    const params = { Name: bridgename }
+    await eventbridge.deleteEventBus(params).promise()
   } catch (error) {
     console.log(error)
     if (error.code !== 'ResourceNotFoundException') {
@@ -468,12 +433,12 @@ module.exports = {
   getClients,
   createOrUpdateFunctionRole,
   createOrUpdateMetaRole,
-  createLambdaFunction,
+  createEventBus,
   updateLambdaFunctionCode,
   updateLambdaFunctionConfig,
-  getLambdaFunction,
+  getEventbridge,
   inputsChanged,
-  deleteLambdaFunction,
+  deleteEventBridge,
   removeAllRoles,
   getMetrics
 }
