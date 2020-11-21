@@ -1,5 +1,5 @@
 const path = require('path')
-const { generateId, getCredentials, getServerlessSdk, getLambda, invokeLambda } = require('./utils')
+const { generateId, getCredentials, getServerlessSdk, getEventbridge } = require('./utils')
 
 // set enough timeout for deployment to finish
 jest.setTimeout(30000)
@@ -7,7 +7,7 @@ jest.setTimeout(30000)
 // the yaml file we're testing against
 const instanceYaml = {
   org: 'bitbundance',
-  app: 'fullstack-app',
+  app: 'serverless-components',
   component: 'aws-eventbridge@dev',
   name: `aws-eventbridge-integration-tests-${generateId()}`,
   stage: 'dev',
@@ -29,7 +29,7 @@ afterAll(async () => {
   await sdk.remove(instanceYaml, credentials)
 })
 
-it('should successfully deploy lambda function', async () => {
+it('should successfully deploy eventbus', async () => {
   const instance = await sdk.deploy(instanceYaml, credentials)
 
   // store the inital state for removal validation later on
@@ -39,42 +39,18 @@ it('should successfully deploy lambda function', async () => {
   expect(instance.outputs.arn).toBeDefined()
 })
 
-it('should successfully update basic configuration', async () => {
-  instanceYaml.inputs.memory = 3008
-  instanceYaml.inputs.timeout = 30
-
-  const instance = await sdk.deploy(instanceYaml, credentials)
-
-  const lambda = await getLambda(credentials, instance.state.name)
-
-  expect(lambda.MemorySize).toEqual(instanceYaml.inputs.memory)
-  expect(lambda.Timeout).toEqual(instanceYaml.inputs.timeout)
-})
-
-it('should successfully update source code', async () => {
-  // first deployment we did not specify source
-  // we're now specifying our own source
-  instanceYaml.inputs.src = path.resolve(__dirname, 'src')
-
-  const instance = await sdk.deploy(instanceYaml, credentials)
-
-  const response = await invokeLambda(credentials, instance.state.name)
-
-  expect(response).toEqual('success')
-})
-
-it('should successfully remove lambda', async () => {
+it('should successfully remove eventbridge', async () => {
   await sdk.remove(instanceYaml, credentials)
 
   // make sure lambda was actually removed
-  let lambda
+  let eventbus
   try {
-    lambda = await getLambda(credentials, firstInstanceState.name)
+    eventbus = await getEventbridge(credentials, firstInstanceState.name)
   } catch (e) {
     if (e.code !== 'ResourceNotFoundException') {
       throw e
     }
   }
 
-  expect(lambda).toBeUndefined()
+  expect(eventbus).toBeUndefined()
 })
