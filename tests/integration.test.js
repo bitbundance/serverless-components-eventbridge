@@ -6,10 +6,10 @@ jest.setTimeout(30000)
 
 // the yaml file we're testing against
 const instanceYaml = {
-  org: 'serverlessinc',
-  app: 'myApp',
-  component: 'aws-lambda@dev',
-  name: `aws-lambda-integration-tests-${generateId()}`,
+  org: 'bitbundance',
+  app: 'fullstack-app',
+  component: 'aws-eventbridge@dev',
+  name: `aws-eventbridge-integration-tests-${generateId()}`,
   stage: 'dev',
   inputs: {} // should deploy with zero inputs
 }
