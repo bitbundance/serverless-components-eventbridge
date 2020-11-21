@@ -39,7 +39,7 @@ it('should successfully deploy eventbus', async () => {
   expect(instance.outputs.arn).toBeDefined()
 })
 
-it('should successfully remove eventbridge', async () => {
+it('should successfully remove eventbus', async () => {
   const client = await sdk.remove(instanceYaml, credentials)
   
   let eventbus
