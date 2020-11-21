@@ -108,7 +108,9 @@ class AwsEventbridge extends Component {
     const clients = getClients(this.credentials.aws, this.state.region)
 
     console.log(`Removing AWS Eventbridge ${this.state.name} from the ${this.state.region} region.`)
+    
     await deleteEventbus(clients.eventbridge, this.state.name)
+    
     console.log(
       `Successfully removed Eventbridge ${this.state.name} from the ${this.state.region} region.`
     )
