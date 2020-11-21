@@ -40,12 +40,12 @@ it('should successfully deploy eventbus', async () => {
 })
 
 it('should successfully remove eventbridge', async () => {
-  await sdk.remove(instanceYaml, credentials)
-
-  // make sure lambda was actually removed
+  const instance = sdk.remove(instanceYaml, credentials)
+  
   let eventbus
+  
   try {
-    eventbus = await getEventbridge(credentials, firstInstanceState.name)
+    eventbus = await getEventbridge(instance.eventBridge, firstInstanceState.name)
   } catch (e) {
     if (e.code !== 'ResourceNotFoundException') {
       throw e

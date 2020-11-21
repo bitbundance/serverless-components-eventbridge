@@ -116,7 +116,7 @@ class AwsEventbridge extends Component {
     )
 
     this.state = {}
-    return {}
+    return {clients}
   }
 
   /**
