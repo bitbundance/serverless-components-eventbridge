@@ -46,22 +46,15 @@ const getClients = (credentials = {}, region) => {
  * @param {*} instance
  */
 const prepareInputs = (inputs, instance) => {
-  const config = {}
-  config.name = inputs.name || instance.state.name || `${instance.name}-${instance.stage}-${randomId}`
-  config.description = inputs.description ||
-      `An AWS EventBridge from the AWS EventBridge Serverless Framework Component.  Serverless name: "${instance.name}" & for stage: "${instance.stage}"`
-  config.tag = {
-    key: 'Creator',
-    value: 'Serverless',
-  } 
-  config.eventsourcename = inputs.eventsourcename || null //used to connect to partner bridge
-  config.region = inputs.region || 'us-east-1'
-  config.archive = {
-    name: inputs.archive.name || `${instance.name}-${instance.stage}-${randomId}`,
-    active: inputs.archive.active || false,
-    description: `An AWS Archive for Eventbridge built through AWS Serverlss Framework Component ${instance.name}-${instance.stage}-${randomId}`,
-    eventpattern: inputs.archive.eventpattern || null,
-    retentiondays: inputs.archive.retentiondays || null
+  return {
+    name: inputs.name || instance.state.name || `${instance.name}-${instance.stage}-${randomId}`,
+    description:
+      inputs.description ||
+      `An AWS EventBridge from the AWS EventBridge Serverless Framework Component.  Name: "${instance.name}" Stage: "${instance.stage}"`,
+    tagkey: 'Creator',
+    tagvalue: 'Bitbundance',
+    eventsourcename: inputs.eventsourcename || null,
+    region: inputs.region || 'us-east-1'
   }
 }
 
@@ -137,65 +130,23 @@ const createOrUpdateMetaRole = async (instance, inputs, clients, serverlessAccou
  */
 const createEventbus = async (instance, eventbridge, inputs) => {
   const params = {
-    ArchiveName: inputs.name, 
-    EventSourceName: inputs.eventsourcename 
+    Name: inputs.name,
+    EventSourceName: inputs.eventsourcename,
+    Tags: [
+      {
+        Key: inputs.tagkey, 
+        Value: inputs.tagvalue 
+      }
+    ]
   }
 
   try {
-    const res = await eventbridge.createArchive(params).promise()
+    const res = await eventbridge.createEventBus(params).promise()
     return { arn: res.EventBusArn, hash: res.CodeSha256 }
   } catch (e) {
     throw e
   }
 }
-
-/**
- * Create a new eventbus
- */
-const createEventbusArchive = async (instance, eventbridge, inputs) => {
-  const params = {
-    Name: inputs.archive.name,
-    EventSourceArn: inputs.arn,
-    Description: inputs.archive.description,
-    EventPattern: inputs.archive.eventpattern,
-    RetentionDays: inputs.archive.retentiondays
-  }
-
-  try {
-    const res = await eventbridge.createEventBus(params).promise()
-    return { arn: res.ArchiveArn, state: res.State, hash: res.CodeSha256 }
-  } catch (e) {
-    throw e
-  }
-}
-
-/**
- * Get EventBridge Function
- * @param {*} eventBridge
- * @param {*} bridgeName
- */
-const getEventbusArchive = async (eventbridge, ArchiveName) => {
-  try {
-    const res = await eventbridge
-      .describeArchive({
-        ArchiveName: ArchiveName
-      })
-      .promise()
-
-    return {
-      name: res.ArchiveName,
-      arn: res.ArchiveArn,
-      pattern: res.EventPattern,
-      state: res.State
-    }
-  } catch (e) {
-    if (e.code === 'ResourceNotFoundException') {
-      return null
-    }
-    throw e
-  }
-}
-
 
 /**
  * Get EventBridge Function
@@ -295,8 +246,6 @@ module.exports = {
   getClients,
   createOrUpdateMetaRole,
   createEventbus,
-  createEventbusArchive,
-  getEventbusArchive,
   getEventbus,
   deleteEventbus,
   getMetrics

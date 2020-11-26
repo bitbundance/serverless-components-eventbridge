@@ -5,9 +5,7 @@ const {
   prepareInputs,
   getClients,
   createEventbus,
-  createEventbusArchive,
   getEventbus,
-  getEventbusArchive,
   deleteEventbus,
   getMetrics
 } = require('./utils')
@@ -69,37 +67,11 @@ class AwsEventbridge extends Component {
       inputs.arn = createResult.arn
       inputs.hash = createResult.hash
       console.log(`Successfully created an AWS EventBridge function`)
-
-      if (inputs.archive) {
-        console.log(
-          `Activating AWS Eventbridge Archive for "${inputs.name}" with Archive name for "${inputs.archive.name}"  in the "${inputs.region}" region.`
-        )
-        const createResult = await createEventbusArchive(this, clients.eventbridge, inputs)
-        console.log(`Successfully created an AWS EventBridge `)
-      } else {
-        console.log(`To enable Eventbridge Archive set archive.active to True`)
-      }
     } else {
-      // Update returned already exists Bus
+      // Update a Lambda function
       inputs.arn = prevEventBridge.arn
       console.log(`Eventbridge ${inputs.name} already exists.`)
     }
-
-    //check archive is active, modify archive if pattern change
-    if (inputs.archive) {
-      const prevEventbusArchive = await getEventbusArchive(clients.eventbridge, inputs.archive.name)
-
-      if (!prevEventbusArchive) {
-          console.log(
-            `Activating AWS Eventbridge Archive for "${inputs.name}" with Archive name for "${inputs.archive.name}"  in the "${inputs.region}" region.`
-          )
-          const createResult = await createEventbusArchive(this, clients.eventbridge, inputs)
-          console.log(`Successfully created an AWS EventBridgeArchive`)
-        }
-      } else {    // Update a return already exists function
-        console.log(`Eventbridge Archive ${inputs.archive.name} already exists.`)
-        console.log(`Eventbridge Archive EventPattern Modification is on ToDo.`)
-      }
 
     // Update state
     this.state.name = inputs.name
